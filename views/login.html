@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 - 我的博客 </title>
+    <link rel="shortcut icon" href="../static/img/favicon.png">
+    <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" style="width: 500px">
+        <form method="POST" action="/login"> <!--post方法跳转到login-->
+            <div class="form-group">
+                <label for="exampleInputEmail">Account </label>
+                <input id="uname" class="form-control" placeholder="account" name="uname">
+            </div>
+            <div class="form-group">
+                <label for="exampleInputPassword">Password</label>
+                <input id="pwd" type="password" class="form-control" placeholder="password" name="pwd">
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="autologin">自动登录
+                </label>
+            </div>
+            <button type="submit" class="btn btn-default" onclick="return checkInput();">登录</button>
+            <button class="btn btn-default" onclick="return backToHome();">登录</button>
+        </form>
+        <!--验证登录是否空白-->
+        <script type="text/javascript">
+            function checkInput() {
+                var uname = document.getElementById("uname");
+                if (uname.value.length ==0) {
+                    alert("请输入账号！")
+                    return false
+                }
+                var pwd = document.getElementById("pwd");
+                if (pwd.value.length ==0) {
+                    alert("请输入密码！")
+                    return false
+                }
+                return true
+            }
+            
+            function backToHome() {
+                window.location.href = "/";
+                return false
+            }
+        </script>
+    </div>
+</body>
+</html>
