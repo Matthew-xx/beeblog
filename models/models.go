@@ -15,9 +15,9 @@ const(
 type Category struct {
 	Id              int64
 	Title           string
-	Created         time.Time `orm:"index"`
-	Views           int64     `orm:"index"`
-	TopicTime       time.Time `orm:"index"`
+	Created         time.Time `orm:"index;null"`
+	Views           int64     `orm:"index;null"`
+	TopicTime       time.Time `orm:"index;null"`
 	TopicCount      int64
 	TopicLastUserId int64
 }
@@ -30,11 +30,11 @@ type Topic struct {
 	Title           string
 	Content         string `orm:size(5000)`
 	Attachment      string
-	Created         time.Time `orm:"index"`
-	Updated         time.Time `orm:"index"`
-	Views           int64     `orm:"index"`
+	Created         time.Time `orm:"index;null"`
+	Updated         time.Time `orm:"index;null"`
+	Views           int64     `orm:"index;null"`
 	Author          string
-	ReplyTime       time.Time `orm:"index"`
+	ReplyTime       time.Time `orm:"index;null"`
 	ReplyCount      int64
 	ReplyLastUserId int64
 }
@@ -51,8 +51,9 @@ func RegisterDB()  {
 //添加文章
 func AddCategory(name string) error {
 	o := orm.NewOrm()
+	tt := time.Now()
 
-	cate := &Category{Title: name}
+	cate := &Category{Title: name,Created: tt}
 	qs := o.QueryTable("category")
 	err := qs.Filter("title", name).One(cate) //使用one获取单个对象
 
