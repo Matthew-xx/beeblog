@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/astaxie/beego/orm"
+	"strconv"
 	"time"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -47,6 +48,46 @@ func RegisterDB()  {
 	orm.RegisterModel(new(Category),new(Topic))
 }
 
+//添加文章
+func AddCategory(name string) error {
+	o := orm.NewOrm()
 
+	cate := &Category{Title: name}
+	qs := o.QueryTable("category")
+	err := qs.Filter("title", name).One(cate) //使用one获取单个对象
+
+	if err == nil {
+		return err
+	}
+
+	_, err = o.Insert(cate)
+	if err != nil {  //插入失败
+		return err
+	}
+	return nil
+}
+
+//获取
+func GetAllCategories() ([]*Category,error)  {
+	o := orm.NewOrm()
+	cates := make([]*Category,0)
+	qs := o.QueryTable("category")
+
+	_,err := qs.All(&cates)
+
+	return cates,err
+}
+
+func DelCategories(id string) error {
+	cid ,err := strconv.ParseInt(id,10,64)
+	if err != nil {
+		return err
+	}
+	o := orm.NewOrm()
+	cate := &Category{Id:cid}
+	_,err = o.Delete(cate)
+
+	return err
+}
 
 

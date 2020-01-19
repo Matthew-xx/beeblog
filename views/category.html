@@ -6,51 +6,60 @@
     <link rel="shortcut icon" href="../static/img/favicon.png">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.min.css">
 </head>
+
 <body>
-<div class="navbar navbar-default navbar-fixed-top"> <!--导航栏固定顶部-->
-    <div class="container">  <!--控制页面宽度-->
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
         <a class="navbar-brand" href="/">我的博客</a>
         <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
-            <li><a href="/">首页</a></li>  <!--active激活的-->
-            <li class="active"><a href="/category">分类</a></li>
+            <li class="active"><a href="/">首页</a></li>  <!--active激活的-->
+            <li><a href="/category">分类</a></li>
             <li><a href="/topic">文章</a></li>
         </ul>
-
-
     </div>
+
     <div class="container">
-        <h1>分类列表</h1>
-        <form method="GET" action="/category"> <!--post方法跳转到login-->
+        <h1>项目列表</h1>
+        <form method="GET" action="/category">
             <div class="form-group">
-                <label for="exampleInputEmail">分类名称 </label>
-                <input id="name" class="form-control" placeholder="account" name="name">
+                <label>项目名称</label>
+                <input type="hidden" name="op" value="add"></input>
+                <input id="name" class="form-control" placeholder="请输入项目名称" name="name">
             </div>
+
             <button type="submit" class="btn btn-default" onclick="return checkInput();">添加</button>
+
         </form>
-        <!--验证登录是否空白-->
         <script type="text/javascript">
-            function checkInput() {
+            function checkInput(){
                 var name = document.getElementById("name");
-                if (name.value.length ==0) {
-                    alert("请输入分类名称！")
-                    return false
-                }
-                return true
+                if (name.value.length ==0) {alert("请输入项目名称");return false;}
+                return true;
             }
         </script>
 
         <table class="table table-striped">
             <thead>
             <tr>
-                
+                <th>#</th>
+                <th>名称</th>
+                <th>文章数</th>
+                <th>操作</th>
             </tr>
             </thead>
+            <tbody>
+            {{range .Categories}}
+                <tr>
+                    <th>{{.Id}}</th>
+                    <th>{{.Title}}</th>
+                    <th>{{.TopicCount}}</th>
+                    <th><a href="/category?op=del&id={{.Id}}">删除</a></th>
+                </tr>
+            {{end}}
+            </tbody>
         </table>
     </div>
 </div>
 
-<!--添加脚本-->
-<script type="text/javascript" src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js"></script>
-<script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
 </body>
 </html>
