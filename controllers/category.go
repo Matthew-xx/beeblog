@@ -23,7 +23,7 @@ func (this *CategoryController) Get()  {
 			beego.Error(err)
 		}
 
-		this.Redirect("/category",301)  //无论成功与否都重定向
+		this.Redirect("/category",302)  //无论成功与否都重定向
 		return
 
 	case "del":
@@ -35,13 +35,14 @@ func (this *CategoryController) Get()  {
 		if err != nil {
 			beego.Error(err)
 		}
-		this.Redirect("/category",301)
+		this.Redirect("/category",302)
 		return
 	}
 
 
 	this.Data["IsCategory"] = true
 	this.TplName = "category.html"
+	this.Data["IsLogin"] = checkAccount(this.Ctx)
 
 	var err error
 	this.Data["Categories"],err = models.GetAllCategories()

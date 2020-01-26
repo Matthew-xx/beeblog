@@ -6,35 +6,58 @@
     <link rel="shortcut icon" href="../static/img/favicon.png">
     <link rel="stylesheet" type="text/css" href="../static/css/bootstrap.min.css">
 </head>
-<body>
-<div class="navbar navbar-default navbar-fixed-top"> <!--导航栏固定顶部-->
-    <div class="container">  <!--控制页面宽度-->
-        <a class="navbar-brand" href="/">我的博客</a>
-        <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
-            <li class="active"><a href="/">首页</a></li>  <!--active激活的-->
-            <li><a href="/category">分类</a></li>
-            <li><a href="/topic">文章</a></li>
-        </ul>
-    </div>
 
-    <div class="pull-right">
-        <ul class="nav navbar-nav">
-            {{if .IsLogin}}  <!--判断是否登录-->
-                <li><a href="/login?exit=true">退出</a></li>
-            {{else}}
-                <li><a href="/login">管理员登录</a></li>
-            {{end}}
-        </ul>
-    </div>
-    <div class="container">
-        <div class="page-header">
-            <h2>我的第一篇博客</h2>
-            <h6 class="text-muted">文章发表于 2020 年 1 月 10 号，共浏览430次</h6>
-            <p>
-                大家好，我是质量三十六公克。这是我的博客。
-            </p>
+<body>
+<div>
+    <div class="navbar navbar-default navbar-fixed-top"> <!--导航栏固定顶部-->
+        <div class="container">  <!--控制页面宽度-->
+            <a class="navbar-brand" href="/home">我的博客</a>
+            <div>
+                <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
+                    <li class="active"><a href="/home">首页</a></li>  <!--active激活的-->
+                    <li><a href="/category">分类</a></li>
+                    <li><a href="/topic">文章</a></li>
+                </ul>
+            </div>
+
+            <div class="pull-right">
+                <ul class="nav navbar-nav">
+                    {{if .IsLogin}}  <!--判断是否登录-->
+                    <li><a href="/login?exit=true">退出</a></li>
+                    {{else}}
+                        <li><a href="/login">管理员登录</a></li>
+                    {{end}}
+                </ul>
+            </div>
         </div>
     </div>
+
+    <div>
+        <ul>
+            <li>
+
+            </li>
+        </ul>
+
+    </div>
+
+
+    <div>
+        <div class="container">
+            <div class="col-md-9">
+                {{range .Topics}}
+                    <div class="page-header">
+                        <h3><a href="/topic/view?tid={{.Id}}">{{.Title}}</a></h3>
+                        <h6 class="text-muted">文章发表于 {{.Updated}}，共有{{.Views}}次浏览，{{.ReplyCount}}个评论</h6>
+                        <p>
+                            {{.Content}}
+                        </p>
+                    </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!--添加脚本-->

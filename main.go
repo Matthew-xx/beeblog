@@ -18,10 +18,13 @@ func main() {
 
 	//（管理）登录操作
 	beego.Router("/",&controllers.MainController{})
+	beego.Router("/home" +
+		"",&controllers.MainController{})
 	beego.Router("/login",&controllers.LoginController{})
-
+	beego.AutoRouter(&controllers.TopicController{})
 	beego.Router("/category",&controllers.CategoryController{})
-
+	beego.Router("/topic",&controllers.TopicController{})
+	//beego.Router("/topic/add",&controllers.TopicController{})
 	beego.Run()
 }
 
