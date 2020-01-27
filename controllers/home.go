@@ -17,7 +17,7 @@ func (this *MainController) Get() {
 
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
 
-	topics,err := models.GetAllTopic(true)
+	topics,err := models.GetAllTopic(this.Input().Get("cate"),true)
 	if err != nil {
 		panic(err)
 	}else {

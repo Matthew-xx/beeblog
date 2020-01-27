@@ -29,6 +29,7 @@ type Topic struct {
 	Id              int64
 	Uid             int64
 	Title           string
+	Category        string
 	Content         string `orm:size(5000)`
 	Attachment      string
 	Created         time.Time `orm:"index;null"`
@@ -40,20 +41,29 @@ type Topic struct {
 	ReplyLastUserId int64
 }
 
+type Comment struct {
+	Id int64
+	Tid int64
+	Name string
+	Content string `orm:"size(1000)"`
+	Created time.Time `orm:"index"`
+}
+
 func RegisterDB()  {
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 
 	// set default database
 	orm.RegisterDataBase("default", "mysql", "root:666666@tcp(127.0.0.1:3306)/beeblog?charset=utf8",30)
 
-	orm.RegisterModel(new(Category),new(Topic))
+	orm.RegisterModel(new(Category),new(Topic),new(Comment))  //每添加新表需先注册
 }
 
-func AddTopic(title,content string) error {
+func AddTopic(title,category,content string) error {
 	o := orm.NewOrm()
 	topic := &Topic{
 		Title:title,
 		Content:content,
+		Category:category,
 		Created:time.Now(),
 		Updated:time.Now(),
 	}
@@ -62,8 +72,45 @@ func AddTopic(title,content string) error {
 	if err != nil{
 		beego.Error(err)
 	}
+	//更新分类统计
+	cate := new(Category)  //获取分类对象
+	qs := o.QueryTable("category")
+	err = qs.Filter("title",category).One(cate)
+	if err == nil {
+		//如果不存在,简单忽略更新操作
+		cate.TopicCount++
+		_,err = o.Update(cate)
+	}
 
 	return nil
+}
+
+func AddReply(tid,nickname,content string) error {
+	tidNum,err := strconv.ParseInt(tid,10,64)
+	if err != nil {
+		return err
+	}
+
+	reply := &Comment{
+		Tid:tidNum,
+		Name:nickname,
+		Content:content,
+		Created:time.Now(),
+	}
+
+	o := orm.NewOrm()
+	_,err = o.Insert(reply)
+	if err != nil {
+		return err
+	}
+
+	topic := &Topic{Id:tidNum}
+	if o.Read(topic) == nil{
+		topic.ReplyTime = time.Now()
+		topic.ReplyCount++
+		_,err = o.Update(topic)
+	}
+	return err
 }
 
 //添加文章
@@ -86,7 +133,21 @@ func AddCategory(name string) error {
 	return nil
 }
 
-func GetAllTopic(isDesc bool) ([]*Topic,error) {
+func GetAllReplies(tid string) (replies []*Comment,err error) {
+	tidNum,err := strconv.ParseInt(tid,10,64)
+	if err != nil {
+		return nil,err
+	}
+	replies = make([]*Comment,0)
+
+	o := orm.NewOrm()
+	qs := o.QueryTable("comment")
+	_,err = qs.Filter("tid",tidNum).All(&replies)
+
+	return replies,err
+}
+
+func GetAllTopic(cate string,isDesc bool) ([]*Topic,error) {
 	//倒序
 	o := orm.NewOrm()
 	topics := make([]*Topic,0)
@@ -96,7 +157,10 @@ func GetAllTopic(isDesc bool) ([]*Topic,error) {
 
 	var err error
 	if isDesc{
-		_,err = qs.OrderBy("-created").All(&topics)
+		if len(cate) > 0 {
+			qs = qs.Filter("category",cate)  //过滤，保存过滤后的对象
+		}
+		_,err = qs.OrderBy("-created").All(&topics)  //链式操作，所有结果读取完后一次性返回
 	}else {
 		_,err = qs.All(&topics)
 	}
@@ -148,20 +212,46 @@ func GetTopic(tid string) (*Topic, error) {
 	return topic,err
 }
 
-func ModifyTopic(tid,title,content string) error {
+func ModifyTopic(tid,title,category,content string) error {
 	tidNum,err := strconv.ParseInt(tid,10,64)
 	if err != nil {
 		return err
 	}
+
+	var oldCate string
 	o := orm.NewOrm()
 	topic := &Topic{Id:tidNum}
 
 	if o.Read(topic) == nil {
+		oldCate = topic.Category  //先取得旧的分类名称
 		topic.Title = title
+		topic.Category = category  //再将新的分类名称赋值
 		topic.Content=content
 		topic.Updated=time.Now()
 		o.Update(topic)
+		if err != nil {
+			return err
+		}
 	}
+
+	//更新分类统计
+	if len(oldCate) > 0{
+		cate := new(Category)
+		qs := o.QueryTable("category")
+		err := qs.Filter("title",oldCate).One(cate)  //找到旧的分类
+		if err == nil {
+			cate.TopicCount--  //若能找到旧的分类则减去计数
+			_,err = o.Update(cate)
+		}
+	}  //更新旧的分类统计
+
+	cate := new(Category)
+	qs := o.QueryTable("category")
+	err = qs.Filter("title",category).One(cate)
+	if err == nil {
+		cate.TopicCount++  //若能找到旧的分类则减去计数
+		_,err = o.Update(cate)
+	}//更新新的分类统计
 
 	return err
 }
@@ -171,9 +261,64 @@ func DeleteTopic(tid string) error {
 	if err != nil {
 		return err
 	}
+
+	var oldCate string
 	o := orm.NewOrm()
 	topic := &Topic{Id:tidNum}
-	_,err = o.Delete(topic)
+	//先获取文章分类
+	if o.Read(topic) == nil {
+		oldCate = topic.Category
+		_,err = o.Delete(topic) //已经存到临时变量里，删除无影响
+		if err != nil {
+			return err
+		}
+	}
 
+	if len(oldCate) > 0 {
+		cate := new(Category)
+		qs := o.QueryTable("category")
+		err = qs.Filter("title",oldCate).One(cate)
+		if err == nil {
+			cate.TopicCount--
+			_,err = o.Update(cate)
+		}
+	}  //文章删除后统计减去
+
+	return err
+}
+
+func DeleteReply(rid string) error {
+	ridNum,err := strconv.ParseInt(rid,10,64)
+	if err != nil {
+		return err
+	}
+	o := orm.NewOrm()
+
+	//先存储到临时变量中
+	var tidNum int64
+
+	reply := &Comment{Id:ridNum}
+	if o.Read(reply) == nil{
+		//返回错误为空即能读取出来，再进行下一步
+		tidNum = reply.Id
+		_,err = o.Delete(reply)  //查找id相等的记录再删除（先初始化一个对象
+		if err != nil {
+			return err
+		}
+	}
+
+	replies := make([]*Comment,0)  //使用字典实现精确统计，所有相关回复都取出再取其长度（不使用reply--）以及方便正确获取最后回复时间
+	qs := o.QueryTable("comment")
+	_,err = qs.Filter("tid",tidNum).OrderBy("-created").All(&replies)
+	if err != nil {
+		return err
+	}
+
+	topic := &Topic{Id:tidNum}
+	if o.Read(topic) == nil{
+		topic.ReplyTime = replies[0].Created   //获取最后回复的创建时间
+		topic.ReplyCount = int64(len(replies))
+		_,err = o.Update(topic)
+	}
 	return err
 }

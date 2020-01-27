@@ -13,7 +13,7 @@ func (this *TopicController) Get()  {
 	this.Data["IsLogin"] = checkAccount(this.Ctx)
 	this.Data["IsTopic"] =true
 	this.TplName = "topic.html"
-	topics,err := models.GetAllTopic(false)
+	topics,err := models.GetAllTopic("",false)
 	if err != nil {
 		beego.Error(err)
 	}else {
@@ -31,12 +31,13 @@ func (this *TopicController) Post()  {
 	tid := this.Input().Get("tid")
 	title := this.Input().Get("title")
 	content := this.Input().Get("content")
+	category := this.Input().Get("category")
 
 	var err error
 	if len(tid) == 0 {
-		err = models.AddTopic(title,content)
+		err = models.AddTopic(title,category,content)
 	}else {
-		err = models.ModifyTopic(tid,title,content)
+		err = models.ModifyTopic(tid,title,category,content)
 	}
 
 	if err != nil {
@@ -65,6 +66,14 @@ func (this *TopicController) View() {
 	this.Data["Topic"]=topic
 	this.Data["Tid"] = tid
 
+	replies,err := models.GetAllReplies(tid)
+	if err != nil {
+		beego.Error(err)
+		return //不影响其他查看步骤
+	}
+
+	this.Data["Replies"] = replies
+	this.Data["IsLogin"] = checkAccount(this.Ctx)
 }
 
 func (this *TopicController) Modify() {

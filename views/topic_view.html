@@ -39,6 +39,27 @@
             {{.Topic.Content}}
         </div>
 
+        <div class="container">
+            {{$tid := .Topic.Id}}  <!--先获取文章的id再传进来，在删除某评论后能重定向到该文章-->
+            {{$IsLogin := .IsLogin}}
+            {{range .Replies}}
+            <h3>{{.Name}} <small>{{.Created}}</small>{{if $IsLogin}}<a href="/reply/delete?tid={{$tid}}&rid={{.Id}}">删除</a>{{end}}</h3>
+                {{.Content}}
+            {{end}}
+            <h3>本文回复</h3>
+            <form method="post" action="/reply/add">
+                <input type="hidden" name="tid" value="{{.Topic.Id}}">
+                <div>
+                    <label>显示昵称：</label>
+                    <input type="text" class="form-control" name="nickname">
+                </div>
+                <div class="form-group">
+                    <label>内容：</label>
+                    <textarea name="content" id="" cols="30" rows="10" class="form-control"></textarea>
+                </div>
+                <button class="btn-default">提交回复</button>
+            </form>
+        </div>
 
         <script type="text/javascript" src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js"></script>
         <script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
