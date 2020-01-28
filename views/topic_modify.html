@@ -8,21 +8,33 @@
 </head>
 
 <body>
-<div class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <a class="navbar-brand" href="/home">我的博客</a>
-        <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
-            <li><a href="/home">首页</a></li>  <!--active激活的-->
-            <li><a href="/category">分类</a></li>
-            <li class="active"><a href="/topic">文章</a></li>
+<div>
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/home">我的博客</a>
+            <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
+                <li><a href="/home">首页</a></li>  <!--active激活的-->
+                <li><a href="/category">分类</a></li>
+                <li class="active"><a href="/topic">文章</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div>
+        <ul>
+            <li>
+
+            </li>
+            <li>
+
+            </li>
         </ul>
     </div>
 
 
-
     <div class="container">
         <h1>修改文章</h1>
-        <form method="post" action="/topic/">
+        <form method="post" action="/topic/" enctype="multipart/form-data">
             <input type="hidden" name="tid" value="{{.Tid}}"> <!--隐藏字段-->
             <div class="form-group">
                 <label>文章标题：</label>
@@ -42,9 +54,14 @@
                 <label>文章内容：</label>
                 <textarea name="content" cols="30" rows="10" class="form-control">{{.Topic.Content}}</textarea>
             </div>
+            <div class="form-group">
+                <label>文章附件(<a href="/attachment/{{.Topic.Attachment}}">{{.Topic.Attachment}}</a>)</label>
+                <input type="file" class="form-control" name="attachment">
+            </div>
             <button type="submit" class="btn-default">修改文章</button>
         </form>
     </div>
+
 </div>
 
 <script type="text/javascript" src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js"></script>

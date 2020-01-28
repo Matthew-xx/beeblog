@@ -8,24 +8,40 @@
 </head>
 
 <body>
-<div class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <a class="navbar-brand" href="/home">我的博客</a>
-        <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
-            <li><a href="/home">首页</a></li>  <!--active激活的-->
-            <li><a href="/category">分类</a></li>
-            <li class="active"><a href="/topic">文章</a></li>
-        </ul>
+<div>
+    <div class="navbar navbar-default navbar-fixed-top"> <!--导航栏固定顶部-->
+        <div class="container">  <!--控制页面宽度-->
+            <a class="navbar-brand" href="/home">我的博客</a>
+            <div>
+                <ul class="nav navbar-nav">  <!--class属性参照boostrap网页-->
+                    <li><a href="/home">首页</a></li>  <!--active激活的-->
+                    <li><a href="/category">分类</a></li>
+                    <li class="active"><a href="/topic">文章</a></li>
+                </ul>
+            </div>
+
+            <div class="pull-right">
+                <ul class="nav navbar-nav">
+                    {{if .IsLogin}}  <!--判断是否登录-->
+                    <li><a href="/login?exit=true">退出</a></li>
+                    {{else}}
+                        <li><a href="/login">管理员登录</a></li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
     </div>
 
-    <div class="pull-right">
-        <ul class="nav navbar-nav">
-            {{if .IsLogin}}  <!--判断是否登录-->
-            <li><a href="/login?exit=true">退出</a></li>
-            {{else}}
-                <li><a href="/login">管理员登录</a></li>
-            {{end}}
+    <div>
+        <ul>
+            <li>
+
+            </li>
+            <li>
+
+            </li>
         </ul>
+
     </div>
 
     <div class="container">
@@ -58,8 +74,8 @@
             </tbody>
         </table>
     </div>
-</div>
 
+</div>
 <script type="text/javascript" src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="../static/js/bootstrap.min.js"></script>
 </body>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"../models"
 	"github.com/astaxie/beego"
+	"path"
 	"strings"
 )
 
@@ -29,17 +30,35 @@ func (this *TopicController) Post()  {
 		return
 	}
 
+	//解析表单
 	tid := this.Input().Get("tid")
 	title := this.Input().Get("title")
 	content := this.Input().Get("content")
 	label := this.Input().Get("label")
 	category := this.Input().Get("category")
 
-	var err error
+	//判断用户是否上传附件
+	_,fh,err := this.GetFile("attachment")
+	if err != nil{
+		beego.Error(err)
+	}
+
+	var attachment string
+	if fh != nil {
+		//保存附件
+		attachment = fh.Filename
+		beego.Info(attachment)
+		err = this.SaveToFile("attachment",path.Join("attachment",attachment))
+		// 第二参数（可相对路径)里面参数（文件夹，文件）
+		if err != nil {
+			beego.Error(err)
+		}
+	}
+
 	if len(tid) == 0 {
-		err = models.AddTopic(title,category,label,content)
+		err = models.AddTopic(title,category,label,content,attachment)
 	}else {
-		err = models.ModifyTopic(tid,title,category,label,content)
+		err = models.ModifyTopic(tid,title,category,label,content,attachment)
 	}
 
 	if err != nil {

@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -60,7 +62,7 @@ func RegisterDB()  {
 	orm.RegisterModel(new(Category),new(Topic),new(Comment))  //每添加新表需先注册
 }
 
-func AddTopic(title,category,label,content string) error {
+func AddTopic(title,category,label,content,attachment string) error {
 	//新增标签，处理标签（实现简单搜索功能，
 	label = "$"+strings.Join(strings.Split(label," "),"#$") + "#"  //以空格作为多个标签的分隔符
 	//“ $label# " 存入数据库形式。关键字搜索，模糊搜索
@@ -71,6 +73,7 @@ func AddTopic(title,category,label,content string) error {
 		Title:title,
 		Content:content,
 		Labels:label,
+		Attachment:attachment,
 		Category:category,
 		Created:time.Now(),
 		Updated:time.Now(),
@@ -226,7 +229,7 @@ func GetTopic(tid string) (*Topic, error) {
 	return topic,err
 }
 
-func ModifyTopic(tid,title,category,label,content string) error {
+func ModifyTopic(tid,title,category,label,content,attachment string) error {
 	tidNum,err := strconv.ParseInt(tid,10,64)
 	if err != nil {
 		return err
@@ -234,14 +237,16 @@ func ModifyTopic(tid,title,category,label,content string) error {
 
 	label = "$"+strings.Join(strings.Split(label," "),"#$") + "#"
 
-	var oldCate string
+	var oldCate,oldAttach string
 	o := orm.NewOrm()
 	topic := &Topic{Id:tidNum}
 
 	if o.Read(topic) == nil {
 		oldCate = topic.Category  //先取得旧的分类名称
+		oldAttach = topic.Attachment
 		topic.Title = title
 		topic.Category = category  //再将新的分类名称赋值
+		topic.Attachment = attachment
 		topic.Labels = label
 		topic.Content=content
 		topic.Updated=time.Now()
@@ -261,6 +266,11 @@ func ModifyTopic(tid,title,category,label,content string) error {
 			_,err = o.Update(cate)
 		}
 	}  //更新旧的分类统计
+
+	//删除旧的附件
+	if len(oldAttach) > 0 {
+		os.Remove(path.Join("attachment",oldAttach))
+	}
 
 	cate := new(Category)
 	qs := o.QueryTable("category")
