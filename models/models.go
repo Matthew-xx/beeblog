@@ -5,6 +5,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,7 @@ type Topic struct {
 	Uid             int64
 	Title           string
 	Category        string
+	Labels          string
 	Content         string `orm:size(5000)`
 	Attachment      string
 	Created         time.Time `orm:"index;null"`
@@ -58,11 +60,17 @@ func RegisterDB()  {
 	orm.RegisterModel(new(Category),new(Topic),new(Comment))  //每添加新表需先注册
 }
 
-func AddTopic(title,category,content string) error {
+func AddTopic(title,category,label,content string) error {
+	//新增标签，处理标签（实现简单搜索功能，
+	label = "$"+strings.Join(strings.Split(label," "),"#$") + "#"  //以空格作为多个标签的分隔符
+	//“ $label# " 存入数据库形式。关键字搜索，模糊搜索
+	//如传入“bee orm“ 那么strings处理后就是  bee#$orm 最后是 $bee#$orm#
+
 	o := orm.NewOrm()
 	topic := &Topic{
 		Title:title,
 		Content:content,
+		Labels:label,
 		Category:category,
 		Created:time.Now(),
 		Updated:time.Now(),
@@ -147,7 +155,7 @@ func GetAllReplies(tid string) (replies []*Comment,err error) {
 	return replies,err
 }
 
-func GetAllTopic(cate string,isDesc bool) ([]*Topic,error) {
+func GetAllTopic(cate ,label string ,isDesc bool) ([]*Topic,error) {
 	//倒序
 	o := orm.NewOrm()
 	topics := make([]*Topic,0)
@@ -159,7 +167,10 @@ func GetAllTopic(cate string,isDesc bool) ([]*Topic,error) {
 	if isDesc{
 		if len(cate) > 0 {
 			qs = qs.Filter("category",cate)  //过滤，保存过滤后的对象
-		}
+		} //看是否有分类
+		if len(label) > 0 {
+			qs = qs.Filter("labels__contains","$"+label+"#")  //查找包含"$"+label+"#"的labels
+		}//看是否有标签
 		_,err = qs.OrderBy("-created").All(&topics)  //链式操作，所有结果读取完后一次性返回
 	}else {
 		_,err = qs.All(&topics)
@@ -209,14 +220,19 @@ func GetTopic(tid string) (*Topic, error) {
 
 	topic.Views++
 	_,err = o.Update(topic)
+
+	//将数据库存储的形式转换成输入形式
+	topic.Labels = strings.Replace(strings.Replace(topic.Labels,"#"," ",-1),"$","",-1)
 	return topic,err
 }
 
-func ModifyTopic(tid,title,category,content string) error {
+func ModifyTopic(tid,title,category,label,content string) error {
 	tidNum,err := strconv.ParseInt(tid,10,64)
 	if err != nil {
 		return err
 	}
+
+	label = "$"+strings.Join(strings.Split(label," "),"#$") + "#"
 
 	var oldCate string
 	o := orm.NewOrm()
@@ -226,6 +242,7 @@ func ModifyTopic(tid,title,category,content string) error {
 		oldCate = topic.Category  //先取得旧的分类名称
 		topic.Title = title
 		topic.Category = category  //再将新的分类名称赋值
+		topic.Labels = label
 		topic.Content=content
 		topic.Updated=time.Now()
 		o.Update(topic)

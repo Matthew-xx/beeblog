@@ -33,10 +33,26 @@
                 </li>
             </ul>
         </div>
+
+        <!--
         <div class="container">
             <h2>{{.Topic.Title}}</h2>
             <a href="/topic/modify?tid={{.Tid}}" class="btn btn-default">修改文章</a>
             {{.Topic.Content}}
+        </div>
+            -->
+
+        <div class="container">
+            {{$label := .Labels}}  <!-- 模板变量-->
+            {{with .Topic}}
+            <h2>{{.Title}} <small>{{.Category}}</small></h2>
+                <h5>
+                    {{range $label}}
+                    <a href="/home?label={{.}}">{{.}}</a>
+                    {{end}}
+                </h5>
+            {{.Content}}
+            {{end}}
         </div>
 
         <div class="container">
